@@ -36,22 +36,31 @@ function problemA () {
    */
 
   // callback version
-  async.each(['poem-two/stanza-01.txt', 'poem-two/stanza-02.txt'],
-    function (filename, eachDone) {
-      readFile(filename, function (err, stanza) {
-        console.log('-- A. callback version --');
-        blue(stanza);
-        eachDone();
-      });
-    },
-    function (err) {
-      console.log('-- A. callback version done --');
-    }
-  );
+  // async.each(['poem-two/stanza-01.txt', 'poem-two/stanza-02.txt'],
+  //   function (filename, eachDone) {
+  //     readFile(filename, function (err, stanza) {
+  //       console.log('-- A. callback version --');
+  //       blue(stanza);
+  //       eachDone();
+  //     });
+  //   },
+  //   function (err) {
+  //     console.log('-- A. callback version done --');
+  //   }
+  // );
 
   // promise version
   // ???
+  const one = promisifiedReadFile('poem-two/stanza-01.txt').then(st => {blue(st)})
+  const two = promisifiedReadFile('poem-two/stanza-02.txt').then(st => {blue(st)})//esta es otra manera, cosa que me guardo en la variable una promesa 
 
+  Promise.all([one,two])
+  // .then(st => {
+  //   blue(st[0])
+  //   blue(st[1]) //voy a recibir la resolucion de ambos en un arreglo
+  .then(()=>{
+    console.log('done')
+  })//con una forma más practica de hacerlo es mas divertido así
 }
 
 function problemB () {
@@ -68,23 +77,33 @@ function problemB () {
     return 'poem-two/' + 'stanza-0' + n + '.txt';
   });
 
-  // callback version
-  async.each(filenames,
-    function (filename, eachDone) {
-      readFile(filename, function (err, stanza) {
-        console.log('-- B. callback version --');
-        blue(stanza);
-        eachDone();
-      });
-    },
-    function (err) {
-      console.log('-- B. callback version done --');
-    }
-  );
+  // // callback version
+  // async.each(filenames,
+  //   function (filename, eachDone) {
+  //     readFile(filename, function (err, stanza) {
+  //       console.log('-- B. callback version --');
+  //       blue(stanza);
+  //       eachDone();
+  //     });
+  //   },
+  //   function (err) {
+  //     console.log('-- B. callback version done --');
+  //   }
+  // );
 
   // promise version
   // ???
+  // filenames =  ['poem-two/stanza-01.txt',  'poem-two/stanza-01.txt', .... ]
 
+  const promises = filenames.map(file => promisifiedReadFile(file).then(st => {blue(st)})) //me quedará
+  //["te prometo que consologeo el 1", "...el 2...",...]
+
+  Promise.all(promises)
+  .then(()=>{
+    console.log('done')
+
+  })
+  
 }
 
 function problemC () {
@@ -103,21 +122,32 @@ function problemC () {
   });
 
   // callback version
-  async.eachSeries(filenames,
-    function (filename, eachDone) {
-      readFile(filename, function (err, stanza) {
-        console.log('-- C. callback version --');
-        blue(stanza);
-        eachDone();
-      });
-    },
-    function (err) {
-      console.log('-- C. callback version done --');
-    }
-  );
+  // async.eachSeries(filenames,
+  //   function (filename, eachDone) {
+  //     readFile(filename, function (err, stanza) {
+  //       console.log('-- C. callback version --');
+  //       blue(stanza);
+  //       eachDone();
+  //     });
+  //   },
+  //   function (err) {
+  //     console.log('-- C. callback version done --');
+  //   }
+  // );
 
   // promise version
   // ???
+  filenames.reduce((p, file) =>{
+    return p.then((st) => { //p inicia como promesa falsa
+      if(st) blue(st)//como en un principio no está, entonces este if es falso, por lo que procede al return, entonces dicho return me da el valor del acumulador, vuelve hace el ciclo y, como esta vez, p si tiene un valor que es el file, ya aplicandole el promisifiedReadFile, entonces podemos aplicarle el .then y por consiguiente entra al if y me hace el blue st. 
+      return promisifiedReadFile(file)//el siguiente
+    })
+  }, Promise.resolve(false))
+  //ahora terminar de hacer el ciclo p termina con el ultimo valor, que es una promesa, por lo que se puede hacer un .then
+  .then((stanza) => {
+    blue(stanza)
+    console.log('done')
+  })
 
 }
 
@@ -139,23 +169,38 @@ function problemD () {
   filenames[randIdx] = 'wrong-file-name-' + (randIdx + 1) + '.txt';
 
   // callback version
-  async.eachSeries(filenames,
-    function (filename, eachDone) {
-      readFile(filename, function (err, stanza) {
-        console.log('-- D. callback version --');
-        if (err) return eachDone(err);
-        blue(stanza);
-        eachDone();
-      });
-    },
-    function (err) {
-      if (err) magenta(new Error(err));
-      console.log('-- D. callback version done --');
-    }
-  );
+  // async.eachSeries(filenames,
+  //   function (filename, eachDone) {
+  //     readFile(filename, function (err, stanza) {
+  //       console.log('-- D. callback version --');
+  //       if (err) return eachDone(err);
+  //       blue(stanza);
+  //       eachDone();
+  //     });
+  //   },
+  //   function (err) {
+  //     if (err) magenta(new Error(err));
+  //     console.log('-- D. callback version done --');
+  //   }
+  // );
 
   // promise version
   // ???
+  filenames.reduce((p, file) =>{
+    return p.then((st) => { //p inicia como promesa falsa
+      if(st) blue(st)//como en un principio no está, entonces este if es falso, por lo que procede al return, entonces dicho return me da el valor del acumulador, vuelve hace el ciclo y, como esta vez, p si tiene un valor que es el file, ya aplicandole el promisifiedReadFile, entonces podemos aplicarle el .then y por consiguiente entra al if y me hace el blue st. 
+      return promisifiedReadFile(file)//el siguiente
+    })
+  }, Promise.resolve(false))
+  //ahora terminar de hacer el ciclo p termina con el ultimo valor, que es una promesa, por lo que se puede hacer un .then
+  .then((stanza) => {
+    blue(stanza)
+    console.log('done')
+  })
+  .catch(err => {
+    magenta(new Error(err))
+    console.log('done')
+  })
 
 }
 
@@ -169,5 +214,23 @@ function problemE () {
   var fs = require('fs');
   function promisifiedWriteFile (filename, str) {
     // tu código aquí
+    return new Promise(function(resolve,reject){
+      fs.writeFile(filename, string, err =>{
+        if(err) return reject(err)
+        resolve('Ta todo bien')
+      })
+    })
   }
+
+
+ /*  utils.promisifiedReadFile = function (filename) {
+    return new Promise(function (resolve, reject) {
+      utils.readFile(filename, function (err, str) {
+        if (err) reject(err);
+        else resolve(str);
+      });
+    });
+  }; */
+
+
 }
